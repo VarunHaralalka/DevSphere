@@ -2,12 +2,18 @@ import "../index.css";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../stores/userStore";
+import { userPostsStore } from "../stores/postsStore";
+import { emailValidation, passwordValidation } from "../components/Validation";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { setUser } = useUserStore();
+  const { setUserPosts } = userPostsStore();
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm();
 
@@ -19,10 +25,15 @@ function LoginPage() {
       );
       console.log(response.data);
       if (response.status === 200) {
+        const { user_id, email, phone, username } = response.data.user;
+        setUser({ user_id, email, phone, username });
         navigate("/");
       }
     } catch (error) {
       console.error("Error logging in:", error);
+      setError("root", {
+        message: "Invalid login credentials",
+      });
     }
   };
 
@@ -39,38 +50,20 @@ function LoginPage() {
         <h1 className="h3 mb-3 fw-normal">Please Log in</h1>
         <div className="form-floating mb-3">
           <input
-            {...register("email", {
-              required: {
-                value: true,
-                message: "Email is required",
-              },
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Invalid email address",
-              },
-            })}
+            {...register("email", emailValidation)}
             type="email"
             className="form-control"
             id="floatingInput"
             placeholder="name@example.com"
           />
-          <label htmlFor="floatingInput">Email address</label>
+          <label htmlFor="floatingInput">Email Address</label>
           {errors.email && (
             <p className="text-danger mt-1 mb-0">{errors.email.message}</p>
           )}
         </div>
         <div className="form-floating mb-3">
           <input
-            {...register("password", {
-              required: {
-                value: true,
-                message: "Password is required",
-              },
-              minLength: {
-                value: 8,
-                message: "Password must be at least 8 characters long",
-              },
-            })}
+            {...register("password", passwordValidation)}
             type="password"
             className="form-control"
             id="floatingPassword"
@@ -87,8 +80,20 @@ function LoginPage() {
           disabled={isSubmitting}
         >
           {isSubmitting ? "Logging in..." : "Login"}
+          {errors.root && (
+            <p className="text-danger mt-1 mb-0">{errors.root.message}</p>
+          )}
         </button>
       </form>
+
+      <div className="text-center mt-3">
+        <p className="text-muted">
+          Don't have an account?{" "}
+          <a href="/signup" className="text-decoration-none">
+            Sign up here
+          </a>
+        </p>
+      </div>
     </main>
   );
 }

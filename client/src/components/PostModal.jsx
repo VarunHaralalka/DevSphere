@@ -1,19 +1,38 @@
-import { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
 import axios from "axios";
+import { useUserStore } from "../stores/userStore";
+import { allPostsStore } from "../stores/postsStore";
 
-const PostModal = ({ open, onClose, onSubmit }) => {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [lookingForCollab, setLookingForCollab] = useState(false);
-
+const PostModal = ({ open, setModalOpen }) => {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm();
+  const { user } = useUserStore();
   if (!open) return null;
 
-  const handlePost = (e) => {
-    e.preventDefault();
-    onSubmit({ title, content, lookingForCollab });
-    setTitle("");
-    setContent("");
-    setLookingForCollab(false);
+  function onClose() {
+    setModalOpen(false);
+    reset();
+  }
+
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/posts", {
+        ...data,
+        owner_id: user.user_id,
+      });
+      if (response.status === 201) {
+        const { addPost } = allPostsStore.getState();
+        addPost(response.data);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error posting post:", error);
+    }
   };
 
   return (
@@ -24,7 +43,7 @@ const PostModal = ({ open, onClose, onSubmit }) => {
       onClick={onClose}
     >
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
-        <form className="modal-content" onSubmit={handlePost}>
+        <form className="modal-content" onSubmit={handleSubmit(onSubmit)}>
           <div className="modal-header">
             <h5 className="modal-title">Create a Post</h5>
             <button
@@ -37,33 +56,28 @@ const PostModal = ({ open, onClose, onSubmit }) => {
           <div className="modal-body">
             <div className="mb-3">
               <input
+                {...register("title", { required: true })}
                 type="text"
                 className="form-control"
                 placeholder="Title"
-                value={title}
-                required
-                onChange={(e) => setTitle(e.target.value)}
               />
             </div>
             <div className="mb-3">
               <textarea
+                {...register("content", { required: true })}
                 className="form-control"
                 placeholder="What's on your mind?"
-                value={content}
-                required
                 rows={4}
-                onChange={(e) => setContent(e.target.value)}
               />
             </div>
             <div className="form-check mb-3">
               <input
+                {...register("collab")}
                 className="form-check-input"
                 type="checkbox"
-                id="collabCheck"
-                checked={lookingForCollab}
-                onChange={(e) => setLookingForCollab(e.target.checked)}
+                id="collab"
               />
-              <label className="form-check-label" htmlFor="collabCheck">
+              <label className="form-check-label" htmlFor="collab">
                 Looking for a collab?
               </label>
             </div>
@@ -76,8 +90,12 @@ const PostModal = ({ open, onClose, onSubmit }) => {
             >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              Post
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Posting..." : "Post"}
             </button>
           </div>
         </form>

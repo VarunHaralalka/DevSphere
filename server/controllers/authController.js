@@ -3,17 +3,15 @@ import bcrypt from "bcrypt";
 
 export const signup = async (req, res) => {
   //SIGNUP
-  const { username, email, password } = req.body;
+  const { username, email, password, phone } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const response = await pool.query(
-      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
-      [username, email, hashedPassword]
+      "INSERT INTO users (username, email, password, phone) VALUES ($1, $2, $3, $4) RETURNING *",
+      [username, email, hashedPassword, phone]
     );
-    res.status(201).json({
-      message: "User created successfully",
-      response: response.rows[0],
-    });
+    const user = response.rows[0];
+    res.status(201).json({ message: "User created successfully", user: user });
   } catch (error) {
     console.error("Error signing up:", error);
     res.status(500).json({ error: "Internal server error" });

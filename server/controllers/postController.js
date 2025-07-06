@@ -2,11 +2,10 @@ import pool from "../database/db.js";
 
 export const getAllPosts = async (req, res) => {
   try {
-    const response = await pool.query("SELECT * FROM posts");
-    res.status(200).json({
-      message: "Posts fetched successfully",
-      response: response.rows,
-    });
+    const response = await pool.query(
+      "SELECT * FROM posts order by created_at desc"
+    );
+    res.status(200).json(response.rows);
   } catch (error) {
     console.error("Error fetching posts:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -21,10 +20,7 @@ export const createPost = async (req, res) => {
       "INSERT INTO posts (title, content, owner_id, collab) VALUES ($1, $2, $3, $4) RETURNING *",
       [title, content, owner_id, collab]
     );
-    res.status(201).json({
-      message: "Post created successfully",
-      response: response.rows[0],
-    });
+    res.status(201).json(response.rows[0]);
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -40,10 +36,7 @@ export const deletePost = async (req, res) => {
       "DELETE FROM posts WHERE post_id = $1 RETURNING *",
       [post_id]
     );
-    res.status(200).json({
-      message: "Post deleted successfully",
-      response: response.rows[0],
-    });
+    res.status(200).json(response.rows[0]);
   } catch (error) {
     console.error("Error deleting post:", error);
     res.status(500).json({ message: "Internal server error" });

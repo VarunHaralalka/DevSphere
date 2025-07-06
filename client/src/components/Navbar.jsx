@@ -7,9 +7,9 @@ function Navbar() {
       {" "}
       <div className="container-fluid">
         {" "}
-        <a className="navbar-brand" href="#">
+        <Link className="navbar-brand" to="/">
           DevSphere
-        </a>{" "}
+        </Link>{" "}
         {/* Right-aligned avatar and notification icon */}
         <div className="d-flex align-items-center ms-auto">
           <button

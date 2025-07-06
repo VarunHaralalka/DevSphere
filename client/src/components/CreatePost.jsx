@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PostModal from "./PostModal";
-
+import { useUserStore } from "../stores/userStore";
+import { userPostsStore, allPostsStore } from "../stores/postsStore";
+import { Link } from "react-router-dom";
 // Avatar component (Bootstrap rounded-circle class)
 const Avatar = ({ src, alt }) => (
   <img
@@ -13,27 +15,25 @@ const Avatar = ({ src, alt }) => (
   />
 );
 
-const AddPostBar = ({ user }) => {
+const AddPostBar = () => {
   const [modalOpen, setModalOpen] = useState(false);
-
-  const handlePostSubmit = (postData) => {
-    // Handle post submission (API call, state update, etc.)
-    setModalOpen(false);
-  };
-
+  const { user } = useUserStore();
+  const { posts, getPosts, addPost } = allPostsStore();
+  useEffect(() => {
+    getPosts();
+  }, [getPosts]);
   return (
     <div className="container">
-      {/* Top Bar */}
       <div
         className="d-flex align-items-center p-3 rounded shadow-sm mb-4"
         id="add-post-bar"
       >
-        <a href="/profile">
+        <Link to="/profile">
           <Avatar
             src={user?.avatarUrl || "/assets/placeholder.jpg"}
-            alt={user?.name || "User Avatar"}
+            alt={user?.username || "User Avatar"}
           />
-        </a>
+        </Link>
         <button
           type="button"
           className="btn btn-light flex-grow-1 text-start ps-4 rounded-pill border"
@@ -43,11 +43,7 @@ const AddPostBar = ({ user }) => {
           Start a post
         </button>
       </div>
-      <PostModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handlePostSubmit}
-      />
+      <PostModal open={modalOpen} setModalOpen={setModalOpen} />
     </div>
   );
 };
