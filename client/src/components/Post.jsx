@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const getOwnerInfo = async (owner_id) => {
   const response = await axios.get(
@@ -29,7 +30,7 @@ function Post({ post }) {
   return (
     <div className="container p-4 p-md-5 mb-4 rounded text-body-emphasis bg-body-secondary">
       <div className="d-flex align-items-center mb-4">
-        <a href="/profile">
+        <a href={`/user/${owner_id}`}>
           <img
             src="/assets/placeholder.jpg"
             alt="User Profile"
@@ -38,7 +39,11 @@ function Post({ post }) {
           />
         </a>
         <div>
-          <h5 className="mb-1 fw-bold">{username}</h5>
+          <h5 className="mb-1 fw-bold">
+            <Link to={`/user/${owner_id}`} className="text-decoration-none">
+              {username}
+            </Link>
+          </h5>
           <small className="text-muted">{created_at.split("T")[0]}</small>
         </div>
       </div>

@@ -18,3 +18,20 @@ CREATE TABLE posts (
     FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+-- User Info table
+
+CREATE TABLE user_info (
+  user_id INT PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
+  fullname TEXT,
+  about TEXT,
+  github TEXT,
+  portfolio TEXT,
+  image_url TEXT,
+  location TEXT,
+  linkedin TEXT,
+  skills TEXT,
+  tech_stack TEXT,
+  open_to_work BOOLEAN DEFAULT FALSE
+);
+
+

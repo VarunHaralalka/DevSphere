@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import postRoutes from "./routes/postRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import userInfoRoutes from "./routes/userInfoRoutes.js";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/user-info", userInfoRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

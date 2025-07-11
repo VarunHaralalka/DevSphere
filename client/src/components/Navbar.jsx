@@ -10,7 +10,6 @@ function Navbar() {
         <Link className="navbar-brand" to="/">
           DevSphere
         </Link>{" "}
-        {/* Right-aligned avatar and notification icon */}
         <div className="d-flex align-items-center ms-auto">
           <button
             className="btn position-relative me-2"
@@ -46,7 +45,7 @@ function Navbar() {
             aria-label="Profile"
           >
             <img
-              src="../public/assets/placeholder.jpg"
+              src="/assets/placeholder.jpg"
               alt="Profile"
               style={{ width: 40, height: 40, objectFit: "cover" }}
             />
