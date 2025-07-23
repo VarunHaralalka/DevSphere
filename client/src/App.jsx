@@ -1,12 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import Profile from "./pages/Profile";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import { useUserStore } from "./stores/userStore";
-import UserProfile from "./pages/UserProfile";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   const { user } = useUserStore();
@@ -31,9 +30,9 @@ function App() {
           />
           <Route
             path="/profile"
-            element={user ? <Profile /> : <Navigate to="/login" />}
+            element={user ? <ProfilePage /> : <Navigate to="/login" />}
           />
-          <Route path="/user/:id" element={<UserProfile />} />
+          <Route path="/user/:id" element={<ProfilePage />} />
         </Routes>
       </main>
       {/* this will render Footer for every page */}

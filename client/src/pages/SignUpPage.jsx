@@ -29,6 +29,11 @@ function SignUpPage() {
       if (response.status === 201) {
         const { user_id, email, phone, username } = response.data.user;
         setUser({ user_id, email, phone, username });
+        const userInfoResponse = await axios.post(
+          "http://localhost:5000/api/user-info",
+          { user_id }
+        );
+        console.log(userInfoResponse.data);
         navigate("/");
       }
     } catch (error) {
@@ -46,10 +51,10 @@ function SignUpPage() {
           <div className="text-center mb-4">
             <img
               className="mb-4"
-              src="/src/assets/devsphere-logo.png"
+              src="/assets/DevSphere-Logo-main.png"
               alt="DevSphere Logo"
-              width="100"
-              height="100"
+              width="400"
+              height="200"
             />
             <h1 className="h3 mb-3 fw-normal">Please Sign Up</h1>
           </div>
@@ -126,16 +131,24 @@ function SignUpPage() {
               </div>
             </div>
 
-            <button
-              className="btn btn-success w-100 py-2"
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Signing Up..." : "Sign Up"}
-              {errors.root && (
-                <p className="text-danger mt-1 mb-0">{errors.root.message}</p>
-              )}
-            </button>
+            <div className="d-flex justify-content-center">
+              <button
+                className="btn btn-success"
+                style={{ minWidth: "12rem", width: "40%" }}
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Signing Up..." : "Sign Up"}
+              </button>
+            </div>
+            {errors.root && (
+              <p
+                className="text-danger mt-1 mb-0"
+                style={{ textAlign: "center" }}
+              >
+                {errors.root.message}
+              </p>
+            )}
           </form>
 
           <div className="text-center mt-3">

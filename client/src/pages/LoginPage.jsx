@@ -38,16 +38,20 @@ function LoginPage() {
   };
 
   return (
-    <main className="form-signin w-100 m-auto">
-      <img
-        className="mb-4"
-        src="/src/assets/devsphere-logo.png"
-        alt="DevSphere Logo"
-        width="100"
-        height="100"
-      />
+    <main className="form-signin w-100 m-auto" style={{ maxWidth: "25rem" }}>
+      <div className="d-flex justify-content-center">
+        <img
+          className="mb-4"
+          src="/assets/DevSphere-Logo-main.png"
+          alt="DevSphere Logo"
+          width="500"
+          height="200"
+        />
+      </div>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <h1 className="h3 mb-3 fw-normal">Please Log in</h1>
+        <h1 className="h3 mb-3 fw-normal" style={{ textAlign: "center" }}>
+          Please Log in
+        </h1>
         <div className="form-floating mb-3">
           <input
             {...register("email", emailValidation)}
@@ -80,12 +84,13 @@ function LoginPage() {
           disabled={isSubmitting}
         >
           {isSubmitting ? "Logging in..." : "Login"}
-          {errors.root && (
-            <p className="text-danger mt-1 mb-0">{errors.root.message}</p>
-          )}
         </button>
+        {errors.root && (
+          <p className="text-danger mt-1 mb-0" style={{ textAlign: "center" }}>
+            {errors.root.message}
+          </p>
+        )}
       </form>
-
       <div className="text-center mt-3">
         <p className="text-muted">
           Don't have an account?{" "}
