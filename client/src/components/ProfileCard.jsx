@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
-import PropTypes from "prop-types";
+import { useUserStore } from "../stores/userStore";
 
 function ProfileCard({ user, editable = false, onProfileUpdate }) {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [originalValues, setOriginalValues] = useState(null);
+  const [feedback, setFeedback] = useState({ type: "", msg: "" });
+  const { user: currentUser, setUser } = useUserStore();
 
   const {
     user_id,
@@ -13,21 +14,20 @@ function ProfileCard({ user, editable = false, onProfileUpdate }) {
     email = "",
     phone = "",
     fullname = "",
+    location = "",
     about = "",
     github = "",
     portfolio = "",
-    location = "",
     linkedin = "",
     skills = "",
     techstack = "",
-    openToWork = false,
-  } = user || {};
+    open_to_work: openToWork = false,
+  } = user ?? {};
 
   const {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { isSubmitting },
   } = useForm({
     defaultValues: {
@@ -43,260 +43,245 @@ function ProfileCard({ user, editable = false, onProfileUpdate }) {
     },
   });
 
-  const values = watch();
+  const urlRule = (rx) => (v) => !v || rx.test(v) || "Invalid URL";
 
-  const handleModify = () => {
-    setOriginalValues({
-      fullname,
-      location,
-      about,
-      github,
-      portfolio,
-      linkedin,
-      skills,
-      techstack,
-      openToWork,
-    });
-    setIsEditMode(true);
-  };
-
-  // Handle form submission
   const onSubmit = async (data) => {
-    const clean = (val) => (val === undefined || val === "" ? null : val);
     const payload = {
-      fullname: clean(data.fullname),
-      about: clean(data.about),
-      github: clean(data.github),
-      portfolio: clean(data.portfolio),
-      image_url: null,
-      location: clean(data.location),
-      linkedin: clean(data.linkedin),
-      skills: clean(data.skills),
-      tech_stack: clean(data.techstack),
+      fullname: data.fullname || null,
+      location: data.location || null,
+      about: data.about || null,
+      github: data.github || null,
+      portfolio: data.portfolio || null,
+      linkedin: data.linkedin || null,
+      skills: data.skills || null,
+      tech_stack: data.techstack || null,
       open_to_work: data.openToWork ?? false,
+      image_url: null,
     };
+
     try {
-      await axios.put(
+      const res = await axios.put(
         `http://localhost:5000/api/user-info/${user_id}`,
         payload
       );
+
+      if (currentUser?.user_id === user_id) {
+        setUser({ ...currentUser, ...payload, techstack: payload.tech_stack });
+      }
+
+      setFeedback({ type: "success", msg: "Profile updated successfully!" });
       setIsEditMode(false);
-      setOriginalValues(null);
-      if (onProfileUpdate) onProfileUpdate();
-    } catch (error) {
-      console.error("Error updating profile:", error);
+      onProfileUpdate?.(res.data);
+    } catch (err) {
+      setFeedback({
+        type: "danger",
+        msg: err.response?.data?.error || "Update failed, please retry.",
+      });
     }
   };
 
-  // Handle cancel
-  const handleCancel = () => {
-    reset(originalValues);
-    setIsEditMode(false);
-    setOriginalValues(null);
-  };
+  const ReadOnlyPair = ({ label1, value1, label2, value2 }) => (
+    <div className="row mb-3">
+      {[
+        [label1, value1],
+        [label2, value2],
+      ].map(
+        ([label, value], idx) =>
+          label && (
+            <div className="col-md-6" key={idx}>
+              <label className="form-label fw-bold">{label}</label>
+              <p className="form-control-plaintext mb-0">
+                {value || "Not specified"}
+              </p>
+            </div>
+          )
+      )}
+    </div>
+  );
 
-  const renderFieldRow = (
-    label1,
+  const EditPair = (
     name1,
-    type1,
-    label2,
+    label1,
     name2,
-    type2,
+    label2,
     placeholder1 = "",
-    placeholder2 = ""
+    placeholder2 = "",
+    opts1 = {},
+    opts2 = {}
   ) => (
     <div className="row mb-3">
-      <div className="col-md-6">
-        <label className="form-label fw-semibold">{label1}</label>
-        <input
-          type={type1}
-          className="form-control"
-          {...register(name1)}
-          readOnly={!isEditMode}
-          placeholder={isEditMode ? placeholder1 : ""}
-        />
-      </div>
-      <div className="col-md-6">
-        <label className="form-label fw-semibold">{label2}</label>
-        <input
-          type={type2}
-          className="form-control"
-          {...register(name2)}
-          readOnly={!isEditMode}
-          placeholder={isEditMode ? placeholder2 : ""}
-        />
-      </div>
+      {[
+        [name1, label1, placeholder1, opts1],
+        [name2, label2, placeholder2, opts2],
+      ].map(
+        ([name, label, ph, opts], idx) =>
+          name && (
+            <div className="col-md-6" key={idx}>
+              <label className="form-label fw-bold">{label}</label>
+              <input
+                className="form-control"
+                placeholder={ph}
+                {...register(name, opts)}
+              />
+            </div>
+          )
+      )}
     </div>
   );
 
   return (
-    <div
-      className="container d-flex justify-content-center align-items-center"
-      style={{ minHeight: "80vh" }}
-    >
-      <div
-        className="card shadow-lg p-5 border-0"
-        style={{ maxWidth: 700, width: "100%", borderRadius: 24 }}
-      >
-        <div className="text-center mb-4">
-          <img
-            src="/assets/placeholder.jpg"
-            alt="User Profile"
-            width="120"
-            className="rounded-circle border border-3 border-primary mb-3"
-            style={{
-              objectFit: "cover",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-            }}
-          />
-          <h2 className="mt-2 mb-1 fw-bold text-primary">{username}</h2>
-        </div>
-        {/* Email and Phone (read-only, not in form) */}
-        <div className="row mb-3">
-          <div className="col-md-6">
-            <label className="form-label fw-semibold">Email</label>
-            <input
-              type="email"
-              className="form-control"
-              value={email}
-              readOnly
+    <div className="card shadow-sm">
+      <div className="card-header bg-primary text-white">
+        <h4 className="mb-0">Profile Information</h4>
+      </div>
+
+      <div className="card-body">
+        {feedback.msg && (
+          <div className={`alert alert-${feedback.type}`}>{feedback.msg}</div>
+        )}
+
+        {!isEditMode && (
+          <>
+            <ReadOnlyPair
+              label1="Username"
+              value1={username}
+              label2="Email"
+              value2={email}
             />
-          </div>
-          <div className="col-md-6">
-            <label className="form-label fw-semibold">Mobile</label>
-            <input type="tel" className="form-control" value={phone} readOnly />
-          </div>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {renderFieldRow(
-            "Full Name",
-            "fullname",
-            "text",
-            "Location",
-            "location",
-            "text"
-          )}
-          <div className="mb-3">
-            <label className="form-label fw-semibold">About</label>
-            <textarea
-              className="form-control"
-              {...register("about")}
-              readOnly={!isEditMode}
-              rows={2}
+            <ReadOnlyPair
+              label1="Phone"
+              value1={phone}
+              label2="Full Name"
+              value2={fullname}
             />
-          </div>
-          {renderFieldRow(
-            "GitHub",
-            "github",
-            "url",
-            "Portfolio",
-            "portfolio",
-            "url",
-            "https://github.com/username",
-            "https://yourportfolio.com"
-          )}
-          {renderFieldRow(
-            "LinkedIn",
-            "linkedin",
-            "url",
-            "Tech Stack",
-            "techstack",
-            "text",
-            "https://linkedin.com/in/username",
-            "e.g. React, Node.js, PostgreSQL"
-          )}
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label className="form-label fw-semibold">Skills</label>
-              <input
-                type="text"
+            <ReadOnlyPair
+              label1="Location"
+              value1={location}
+              label2="GitHub"
+              value2={github}
+            />
+            <ReadOnlyPair
+              label1="Portfolio"
+              value1={portfolio}
+              label2="LinkedIn"
+              value2={linkedin}
+            />
+            <ReadOnlyPair
+              label1="Skills"
+              value1={skills}
+              label2="Tech Stack"
+              value2={techstack}
+            />
+
+            <div className="mb-3">
+              <label className="form-label fw-bold">About</label>
+              <p className="form-control-plaintext mb-0">
+                {about || "Not specified"}
+              </p>
+            </div>
+
+            <ReadOnlyPair
+              label1="Open to Work"
+              value1={openToWork ? "Yes" : "No"}
+            />
+
+            {editable && (
+              <button
+                type="button"
+                className="btn btn-primary mt-3"
+                onClick={() => {
+                  reset();
+                  setIsEditMode(true);
+                  setFeedback({ type: "", msg: "" });
+                }}
+              >
+                Edit Profile
+              </button>
+            )}
+          </>
+        )}
+
+        {isEditMode && (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {EditPair("fullname", "Full Name", "location", "Location")}
+            <div className="mb-3">
+              <label className="form-label fw-bold">About</label>
+              <textarea
+                rows="4"
                 className="form-control"
-                {...register("skills")}
-                readOnly={!isEditMode}
-                placeholder={
-                  isEditMode ? "e.g. JavaScript, Communication, Leadership" : ""
-                }
+                {...register("about")}
               />
             </div>
-            <div className="col-md-6 d-flex align-items-center">
-              <label className="form-label fw-semibold me-3 mb-0">
-                Open to Work
-              </label>
-              {isEditMode ? (
-                <>
+            {EditPair(
+              "github",
+              "GitHub URL",
+              "portfolio",
+              "Portfolio URL",
+              "https://github.com/username",
+              "https://example.com",
+              {
+                validate: urlRule(
+                  /^https?:\/\/(www\.)?github\.com\/[\w.-]+\/?$/
+                ),
+              },
+              {
+                validate: urlRule(/^https?:\/\//),
+              }
+            )}
+            {EditPair(
+              "linkedin",
+              "LinkedIn URL",
+              "skills",
+              "Skills",
+              "https://linkedin.com/in/username",
+              "JavaScript, React",
+              {
+                validate: urlRule(
+                  /^https?:\/\/(www\.)?linkedin\.com\/in\/[\w.-]+\/?$/
+                ),
+              }
+            )}
+            {EditPair("techstack", "Tech Stack", null, null)}
+
+            {/* Open to work (single but keeps grid alignment) */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="form-check mt-2">
                   <input
                     type="checkbox"
-                    className="form-check-input me-2"
+                    className="form-check-input"
+                    id="openToWork"
                     {...register("openToWork")}
-                    id="openToWorkCheckbox"
                   />
-                  <label
-                    htmlFor="openToWorkCheckbox"
-                    className="form-check-label mb-0"
-                  >
-                    {values.openToWork ? "Yes" : "No"}
+                  <label htmlFor="openToWork" className="form-check-label">
+                    Open to Work
                   </label>
-                </>
-              ) : (
-                <span className="text-muted">
-                  {values.openToWork ? "Yes" : "No"}
-                </span>
-              )}
+                </div>
+              </div>
             </div>
-          </div>
-          {editable && !isEditMode && (
-            <div className="text-end mt-4">
-              <button
-                type="button"
-                className="btn btn-primary px-4"
-                onClick={handleModify}
-              >
-                Modify
-              </button>
-            </div>
-          )}
-          {editable && isEditMode && (
-            <div className="text-end mt-4">
-              <button
-                type="button"
-                className="btn btn-secondary px-4 me-2"
-                onClick={handleCancel}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-success px-4"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Saving..." : "Save"}
-              </button>
-            </div>
-          )}
-        </form>
+
+            <button
+              type="submit"
+              className="btn btn-success me-2"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Saving…" : "Save Changes"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                reset();
+                setIsEditMode(false);
+              }}
+            >
+              Cancel
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
 }
-
-ProfileCard.propTypes = {
-  user: PropTypes.shape({
-    user_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    username: PropTypes.string,
-    email: PropTypes.string,
-    phone: PropTypes.string,
-    fullname: PropTypes.string,
-    about: PropTypes.string,
-    github: PropTypes.string,
-    portfolio: PropTypes.string,
-    location: PropTypes.string,
-    linkedin: PropTypes.string,
-    skills: PropTypes.string,
-    techstack: PropTypes.string,
-    openToWork: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
-  }).isRequired,
-  editable: PropTypes.bool,
-  onProfileUpdate: PropTypes.func,
-};
 
 export default ProfileCard;

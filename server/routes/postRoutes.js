@@ -5,27 +5,14 @@ import {
   updatePost,
   deletePost,
 } from "../controllers/postController.js";
+import { postValidation } from "../middleware/postValidation.js";
+import { validate } from "../middleware/validate.js";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  //GET ALL POSTS
-  getAllPosts(req, res);
-});
-
-router.post("/", (req, res) => {
-  //CREATE A POST
-  createPost(req, res);
-});
-
-router.patch("/:id", (req, res) => {
-  //UPDATE A POST
-  updatePost(req, res);
-});
-
-router.delete("/:id", (req, res) => {
-  //DELETE A POST
-  deletePost(req, res);
-});
+router.get("/", getAllPosts);
+router.post("/", validate(postValidation), createPost);
+router.patch("/:id", validate(postValidation), updatePost);
+router.delete("/:id", deletePost);
 
 export default router;
