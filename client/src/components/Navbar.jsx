@@ -1,13 +1,20 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useUserStore } from "../stores/userStore";
+import axiosInstance from "../utils/axiosConfig";
 
 function Navbar() {
-  const { user, clearUser } = useUserStore();
+  const { user, isAuthenticated, clearUser } = useUserStore();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    clearUser();
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      clearUser();
+      navigate("/login");
+    }
   };
 
   return (
@@ -28,23 +35,20 @@ function Navbar() {
 
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
-            {user ? (
+            {isAuthenticated ? (
               <>
                 <li className="nav-item">
                   <Link className="nav-link" to="/">
                     Home
                   </Link>
                 </li>
-
-                {/* Pass user_id explicitly to profile link */}
                 <li className="nav-item">
-                  <Link className="nav-link" to={`/user/${user.user_id}`}>
+                  <Link className="nav-link" to={`/profile/${user?.user_id}`}>
                     My Profile
                   </Link>
                 </li>
-
                 <li className="nav-item">
-                  <span className="nav-link">Welcome, {user.username}!</span>
+                  <span className="nav-link">Welcome, {user?.username}!</span>
                 </li>
                 <li className="nav-item">
                   <button

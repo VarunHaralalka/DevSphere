@@ -1,43 +1,53 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import HomePage from "./pages/HomePage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
-import { useUserStore } from "./stores/userStore";
 import ProfilePage from "./pages/ProfilePage";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { useUserStore } from "./stores/userStore";
 
 function App() {
-  const { user } = useUserStore();
+  const { user, isAuthenticated, initializeAuth } = useUserStore();
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-      }}
-    >
-      {/* this will render Navbar for every page */}
+    <ErrorBoundary>
       <Navbar />
-      <main style={{ flex: 1 }}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-          <Route
-            path="/"
-            element={user ? <HomePage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/profile"
-            element={user ? <ProfilePage /> : <Navigate to="/login" />}
-          />
-          <Route path="/user/:id" element={<ProfilePage />} />
-        </Routes>
-      </main>
-      {/* this will render Footer for every page */}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/profile/:id?"
+          element={
+            isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            !isAuthenticated ? <LoginPage /> : <Navigate to="/" replace />
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            !isAuthenticated ? <SignUpPage /> : <Navigate to="/" replace />
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       <Footer />
-    </div>
+    </ErrorBoundary>
   );
 }
 

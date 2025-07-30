@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useUserStore } from "../stores/userStore";
@@ -29,8 +29,10 @@ function ProfileCard({ user, editable = false, onProfileUpdate }) {
     handleSubmit,
     reset,
     formState: { isSubmitting },
-  } = useForm({
-    defaultValues: {
+  } = useForm();
+
+  useEffect(() => {
+    reset({
       fullname,
       location,
       about,
@@ -40,8 +42,19 @@ function ProfileCard({ user, editable = false, onProfileUpdate }) {
       skills,
       techstack,
       openToWork,
-    },
-  });
+    });
+  }, [
+    reset,
+    fullname,
+    location,
+    about,
+    github,
+    portfolio,
+    linkedin,
+    skills,
+    techstack,
+    openToWork,
+  ]);
 
   const urlRule = (rx) => (v) => !v || rx.test(v) || "Invalid URL";
 
@@ -190,7 +203,17 @@ function ProfileCard({ user, editable = false, onProfileUpdate }) {
                 type="button"
                 className="btn btn-primary mt-3"
                 onClick={() => {
-                  reset();
+                  reset({
+                    fullname,
+                    location,
+                    about,
+                    github,
+                    portfolio,
+                    linkedin,
+                    skills,
+                    techstack,
+                    openToWork,
+                  });
                   setIsEditMode(true);
                   setFeedback({ type: "", msg: "" });
                 }}

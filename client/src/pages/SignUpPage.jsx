@@ -1,6 +1,6 @@
 import "../index.css";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import axiosInstance from "../utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../stores/userStore";
 import {
@@ -13,34 +13,40 @@ import {
 function SignUpPage() {
   const navigate = useNavigate();
   const { setUser } = useUserStore();
+
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
   } = useForm();
+
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        data
-      );
-      console.log(response.data);
-      if (response.status === 201) {
-        const { user_id, email, phone, username } = response.data.user;
+      // create account
+      const res = await axiosInstance.post("/auth/signup", data);
+
+      if (res.status === 201) {
+        // 1️⃣ store access token
+        localStorage.setItem("accessToken", res.data.accessToken);
+
+        // 2️⃣ populate user store
+        const { user_id, email, phone, username } = res.data.user;
         setUser({ user_id, email, phone, username });
-        const userInfoResponse = await axios.post(
-          "http://localhost:5000/api/user-info",
-          { user_id }
-        );
-        console.log(userInfoResponse.data);
+
+        // 3️⃣ ensure an empty user_info row exists
+        axiosInstance.post("/user-info", { user_id }).catch(() => {
+          /* non-fatal – ignore */
+        });
+
+        // 4️⃣ redirect home
         navigate("/");
       }
-    } catch (error) {
-      console.error("Error signing up:", error);
-      setError("root", {
-        message: "Error signing up",
-      });
+    } catch (err) {
+      const msg =
+        err.response?.data?.error ||
+        "Error signing up. Please check your details and try again.";
+      setError("root", { message: msg });
     }
   };
 
@@ -61,6 +67,7 @@ function SignUpPage() {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="row">
+              {/* Username */}
               <div className="col-md-6">
                 <div className="form-floating mb-3">
                   <input
@@ -78,6 +85,8 @@ function SignUpPage() {
                   )}
                 </div>
               </div>
+
+              {/* Phone */}
               <div className="col-md-6">
                 <div className="form-floating mb-3">
                   <input
@@ -96,6 +105,7 @@ function SignUpPage() {
                 </div>
               </div>
 
+              {/* Email */}
               <div className="col-md-6">
                 <div className="form-floating mb-3">
                   <input
@@ -113,6 +123,8 @@ function SignUpPage() {
                   )}
                 </div>
               </div>
+
+              {/* Password */}
               <div className="col-md-6">
                 <div className="form-floating mb-3">
                   <input
@@ -120,6 +132,7 @@ function SignUpPage() {
                     type="password"
                     className="form-control"
                     id="floatingPassword"
+                    placeholder="Password"
                   />
                   <label htmlFor="floatingPassword">Password</label>
                   {errors.password && (
@@ -131,6 +144,7 @@ function SignUpPage() {
               </div>
             </div>
 
+            {/* Submit */}
             <div className="d-flex justify-content-center">
               <button
                 className="btn btn-success"
@@ -141,11 +155,10 @@ function SignUpPage() {
                 {isSubmitting ? "Signing Up..." : "Sign Up"}
               </button>
             </div>
+
+            {/* Root error */}
             {errors.root && (
-              <p
-                className="text-danger mt-1 mb-0"
-                style={{ textAlign: "center" }}
-              >
+              <p className="text-danger mt-1 mb-0 text-center">
                 {errors.root.message}
               </p>
             )}

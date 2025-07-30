@@ -1,6 +1,6 @@
 import "../index.css";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import axiosInstance from "../utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../stores/userStore";
 import { userPostsStore } from "../stores/postsStore";
@@ -19,20 +19,28 @@ function LoginPage() {
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        data
-      );
-      console.log(response.data);
+      const response = await axiosInstance.post("/auth/login", data);
+
       if (response.status === 200) {
+        localStorage.setItem("accessToken", response.data.accessToken);
+
         const { user_id, email, phone, username } = response.data.user;
         setUser({ user_id, email, phone, username });
+
+        try {
+          const postsResponse = await axiosInstance.get(`/posts/${user_id}`);
+          setUserPosts(postsResponse.data);
+        } catch (postsError) {
+          console.error("Error fetching user posts:", postsError);
+        }
+
         navigate("/");
       }
     } catch (error) {
-      console.error("Error logging in:", error);
+      const errorMessage =
+        error.response?.data?.error || "Invalid login credentials";
       setError("root", {
-        message: "Invalid login credentials",
+        message: errorMessage,
       });
     }
   };

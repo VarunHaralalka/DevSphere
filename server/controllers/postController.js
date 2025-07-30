@@ -42,3 +42,17 @@ export const deletePost = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getUserPosts = async (req, res) => {
+  const { user_id } = req.params;
+  try {
+    const response = await pool.query(
+      "SELECT * FROM posts WHERE owner_id = $1",
+      [user_id]
+    );
+    res.status(200).json(response.rows);
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
