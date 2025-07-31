@@ -3,7 +3,7 @@ import pool from "../database/db.js";
 export const getAllPosts = async (req, res) => {
   try {
     const response = await pool.query(
-      "SELECT * FROM posts order by created_at desc"
+      "SELECT * FROM posts order by created_at desc, post_id desc"
     );
     res.status(200).json(response.rows);
   } catch (error) {
@@ -11,6 +11,7 @@ export const getAllPosts = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 export const createPost = async (req, res) => {
   const { title, content, owner_id, collab } = req.body;
   try {
@@ -26,20 +27,44 @@ export const createPost = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 export const updatePost = async (req, res) => {
-  res.send("Hello World");
+  const { id } = req.params;
+  const { title, content, collab } = req.body;
+
+  try {
+    const response = await pool.query(
+      "UPDATE posts SET title = $1, content = $2, collab = $3 WHERE post_id = $4 RETURNING *",
+      [title, content, collab, id]
+    );
+
+    if (response.rows.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    res.status(200).json(response.rows[0]);
+  } catch (error) {
+    console.error("Error updating post:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
+
 export const deletePost = async (req, res) => {
-  const { post_id } = req.params;
+  const { id } = req.params;
   try {
     const response = await pool.query(
       "DELETE FROM posts WHERE post_id = $1 RETURNING *",
-      [post_id]
+      [id]
     );
+
+    if (response.rows.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
     res.status(200).json(response.rows[0]);
   } catch (error) {
     console.error("Error deleting post:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -47,12 +72,12 @@ export const getUserPosts = async (req, res) => {
   const { user_id } = req.params;
   try {
     const response = await pool.query(
-      "SELECT * FROM posts WHERE owner_id = $1",
+      "SELECT * FROM posts WHERE owner_id = $1 ORDER BY created_at DESC",
       [user_id]
     );
     res.status(200).json(response.rows);
   } catch (error) {
     console.error("Error fetching user posts:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };

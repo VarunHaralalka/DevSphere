@@ -11,10 +11,6 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  if (!loggedInUser) {
-    return <Navigate to="/login" replace />;
-  }
-
   const isOwnProfile = !id || String(loggedInUser.user_id) === String(id);
   const userIdToFetch = id || loggedInUser.user_id;
 
@@ -68,8 +64,15 @@ function ProfilePage() {
   };
 
   useEffect(() => {
+    if (!loggedInUser) {
+      return;
+    }
     fetchUser();
-  }, [userIdToFetch]);
+  }, [userIdToFetch, loggedInUser]);
+
+  if (!loggedInUser) {
+    return <Navigate to="/login" replace />;
+  }
 
   if (loading) {
     return (

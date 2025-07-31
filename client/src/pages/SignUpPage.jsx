@@ -23,23 +23,18 @@ function SignUpPage() {
 
   const onSubmit = async (data) => {
     try {
-      // create account
       const res = await axiosInstance.post("/auth/signup", data);
 
       if (res.status === 201) {
-        // 1️⃣ store access token
         localStorage.setItem("accessToken", res.data.accessToken);
 
-        // 2️⃣ populate user store
         const { user_id, email, phone, username } = res.data.user;
         setUser({ user_id, email, phone, username });
 
-        // 3️⃣ ensure an empty user_info row exists
         axiosInstance.post("/user-info", { user_id }).catch(() => {
           /* non-fatal – ignore */
         });
 
-        // 4️⃣ redirect home
         navigate("/");
       }
     } catch (err) {
@@ -51,130 +46,176 @@ function SignUpPage() {
   };
 
   return (
-    <main className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-lg-8 col-md-10">
-          <div className="text-center mb-4">
-            <img
-              className="mb-4"
-              src="/assets/DevSphere-Logo-main.png"
-              alt="DevSphere Logo"
-              width="400"
-              height="200"
-            />
-            <h1 className="h3 mb-3 fw-normal">Please Sign Up</h1>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl w-full space-y-8">
+        <div className="text-center">
+          <img
+            className="mx-auto h-32 w-auto"
+            src="/assets/DevSphere-Logo-main.png"
+            alt="DevSphere Logo"
+          />
+          <h2 className="mt-6 text-3xl font-extrabold text-white">
+            Join DevSphere
+          </h2>
+          <p className="mt-2 text-sm text-gray-400">
+            Create your account and start connecting with developers
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="row">
-              {/* Username */}
-              <div className="col-md-6">
-                <div className="form-floating mb-3">
-                  <input
-                    {...register("username", usernameValidation)}
-                    type="text"
-                    className="form-control"
-                    id="floatingUsername"
-                    placeholder="Username"
-                  />
-                  <label htmlFor="floatingUsername">Username</label>
-                  {errors.username && (
-                    <p className="text-danger mt-1 mb-0">
-                      {errors.username.message}
-                    </p>
-                  )}
-                </div>
+        <div className="card p-8">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Username
+                </label>
+                <input
+                  {...register("username", usernameValidation)}
+                  type="text"
+                  id="username"
+                  className="input-field"
+                  placeholder="Choose a username"
+                />
+                {errors.username && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.username.message}
+                  </p>
+                )}
               </div>
 
-              {/* Phone */}
-              <div className="col-md-6">
-                <div className="form-floating mb-3">
-                  <input
-                    {...register("phone", phoneValidation)}
-                    type="tel"
-                    className="form-control"
-                    id="floatingPhone"
-                    placeholder="9876543210"
-                  />
-                  <label htmlFor="floatingPhone">Phone Number</label>
-                  {errors.phone && (
-                    <p className="text-danger mt-1 mb-0">
-                      {errors.phone.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="col-md-6">
-                <div className="form-floating mb-3">
-                  <input
-                    {...register("email", emailValidation)}
-                    type="email"
-                    className="form-control"
-                    id="floatingEmail"
-                    placeholder="name@example.com"
-                  />
-                  <label htmlFor="floatingEmail">Email address</label>
-                  {errors.email && (
-                    <p className="text-danger mt-1 mb-0">
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Password */}
-              <div className="col-md-6">
-                <div className="form-floating mb-3">
-                  <input
-                    {...register("password", passwordValidation)}
-                    type="password"
-                    className="form-control"
-                    id="floatingPassword"
-                    placeholder="Password"
-                  />
-                  <label htmlFor="floatingPassword">Password</label>
-                  {errors.password && (
-                    <p className="text-danger mt-1 mb-0">
-                      {errors.password.message}
-                    </p>
-                  )}
-                </div>
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Phone Number
+                </label>
+                <input
+                  {...register("phone", phoneValidation)}
+                  type="tel"
+                  id="phone"
+                  className="input-field"
+                  placeholder="1234567890"
+                />
+                {errors.phone && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.phone.message}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Submit */}
-            <div className="d-flex justify-content-center">
-              <button
-                className="btn btn-success"
-                style={{ minWidth: "12rem", width: "40%" }}
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Signing Up..." : "Sign Up"}
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Email Address
+                </label>
+                <input
+                  {...register("email", emailValidation)}
+                  type="email"
+                  id="email"
+                  className="input-field"
+                  placeholder="your@email.com"
+                />
+                {errors.email && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Password
+                </label>
+                <input
+                  {...register("password", passwordValidation)}
+                  type="password"
+                  id="password"
+                  className="input-field"
+                  placeholder="Create a strong password"
+                />
+                {errors.password && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Root error */}
+            <button
+              type="submit"
+              className="w-full btn-primary py-3 text-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <svg
+                    className="animate-spin w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Creating account...</span>
+                </div>
+              ) : (
+                "Create Account"
+              )}
+            </button>
+
             {errors.root && (
-              <p className="text-danger mt-1 mb-0 text-center">
+              <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center">
                 {errors.root.message}
-              </p>
+              </div>
             )}
           </form>
 
-          <div className="text-center mt-3">
-            <p className="text-muted">
-              Already have an account?{" "}
-              <a href="/login" className="text-decoration-none">
-                Login here
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-800 text-gray-400">
+                  Already have an account?
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6 text-center">
+              <a
+                href="/login"
+                className="font-medium text-primary-400 hover:text-primary-300 transition-colors duration-200"
+              >
+                Sign in here
               </a>
-            </p>
+            </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 

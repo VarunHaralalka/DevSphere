@@ -17,10 +17,44 @@ export const useUserStore = create(
 
       clearUser: () => {
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("user-storage");
         set({
           user: null,
           isAuthenticated: false,
         });
+        get().___persist?.setOptions?.({
+          name: "user-storage",
+          skipHydration: true,
+        });
+      },
+
+      hardReset: () => {
+        try {
+          // Clear all tokens
+          localStorage.removeItem("accessToken");
+
+          // Use Zustand's persist API to clear storage
+          if (get().___persist?.clearStorage) {
+            get().___persist.clearStorage();
+          } else {
+            // Fallback manual clearing
+            localStorage.removeItem("user-storage");
+          }
+
+          // Reset state
+          set({
+            user: null,
+            isAuthenticated: false,
+          });
+        } catch (error) {
+          // Fallback: manual clearing
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("user-storage");
+          set({
+            user: null,
+            isAuthenticated: false,
+          });
+        }
       },
 
       updateUser: (updates) => {
@@ -30,12 +64,16 @@ export const useUserStore = create(
         }
       },
 
-      // Simplified auth initialization
       initializeAuth: async () => {
+        const isLoggingOut = sessionStorage.getItem("logging-out");
+        if (isLoggingOut) {
+          sessionStorage.removeItem("logging-out");
+          return;
+        }
+
         const accessToken = localStorage.getItem("accessToken");
 
         if (accessToken) {
-          // Try to verify token with backend
           try {
             const response = await axios.get(
               "http://localhost:5000/api/auth/me",
@@ -47,40 +85,46 @@ export const useUserStore = create(
             );
 
             if (response.status === 200) {
-              const data = response.data;
               set({
-                user: data.user,
+                user: response.data.user,
                 isAuthenticated: true,
               });
               return;
             }
           } catch (error) {
-            console.log("Token verification failed");
+            // Token is invalid, clear everything
+            get().hardReset();
+            return;
           }
         }
 
-        // Try refresh token
-        try {
-          const response = await axios.post(
-            "http://localhost:5000/api/auth/refresh",
-            {},
-            {
-              withCredentials: true,
-            }
-          );
+        // Try refresh token only if not logging out
+        if (!sessionStorage.getItem("logging-out")) {
+          try {
+            const response = await axios.post(
+              "http://localhost:5000/api/auth/refresh",
+              {},
+              {
+                withCredentials: true,
+              }
+            );
 
-          if (response.status === 200) {
-            const data = response.data;
-            localStorage.setItem("accessToken", data.accessToken);
-            set({
-              user: data.user,
-              isAuthenticated: true,
-            });
+            if (response.status === 200) {
+              localStorage.setItem("accessToken", response.data.accessToken);
+              set({
+                user: response.data.user,
+                isAuthenticated: true,
+              });
+            }
+          } catch (error) {
+            // No valid refresh token, ensure clean state
+            get().hardReset();
           }
-        } catch (error) {
-          console.log("No valid refresh token");
         }
       },
+
+      // Expose persist methods (will be set by middleware)
+      ___persist: null,
     }),
     {
       name: "user-storage",
@@ -88,6 +132,13 @@ export const useUserStore = create(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
+      // CRITICAL FIX: Expose persist methods to the store
+      onRehydrateStorage: () => (state, error) => {
+        if (state && !error) {
+          // Make persist methods available
+          state.___persist = useUserStore.persist;
+        }
+      },
     }
   )
 );

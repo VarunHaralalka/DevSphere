@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import HomePage from "./pages/HomePage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -11,42 +11,73 @@ import { useUserStore } from "./stores/userStore";
 
 function App() {
   const { user, isAuthenticated, initializeAuth } = useUserStore();
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    initializeAuth();
+    const initialize = async () => {
+      if (!sessionStorage.getItem("logging-out")) {
+        await initializeAuth();
+      }
+      setIsInitialized(true);
+    };
+
+    initialize();
   }, [initializeAuth]);
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+          <p className="mt-4 text-gray-400">Loading DevSphere...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
-      <Navbar />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/profile/:id?"
-          element={
-            isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            !isAuthenticated ? <LoginPage /> : <Navigate to="/" replace />
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            !isAuthenticated ? <SignUpPage /> : <Navigate to="/" replace />
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <Footer />
+      <div className="min-h-screen bg-gray-900 flex flex-col">
+        <Navbar />
+        <main className="flex-1">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? (
+                  <HomePage />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+            <Route
+              path="/profile/:id?"
+              element={
+                isAuthenticated ? (
+                  <ProfilePage />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                !isAuthenticated ? <LoginPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                !isAuthenticated ? <SignUpPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </ErrorBoundary>
   );
 }

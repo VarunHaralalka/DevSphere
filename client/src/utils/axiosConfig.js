@@ -19,13 +19,14 @@ const refreshAccessToken = async () => {
       localStorage.setItem("accessToken", data.accessToken);
       return data.accessToken;
     } else {
+      // Clear both tokens when refresh fails
       localStorage.removeItem("accessToken");
-      window.location.href = "/login";
+      localStorage.removeItem("user-storage");
       return null;
     }
   } catch (error) {
     localStorage.removeItem("accessToken");
-    window.location.href = "/login";
+    localStorage.removeItem("user-storage");
     return null;
   }
 };
@@ -35,7 +36,8 @@ axiosInstance.interceptors.request.use(
     if (
       config.url?.includes("/auth/login") ||
       config.url?.includes("/auth/signup") ||
-      config.url?.includes("/auth/refresh")
+      config.url?.includes("/auth/refresh") ||
+      config.url?.includes("/auth/logout")
     ) {
       return config;
     }
@@ -55,6 +57,15 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/signup") ||
+      originalRequest.url?.includes("/auth/refresh") ||
+      originalRequest.url?.includes("/auth/logout")
+    ) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -62,6 +73,11 @@ axiosInstance.interceptors.response.use(
       if (newToken) {
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axiosInstance(originalRequest);
+      } else {
+        const currentPath = window.location.pathname;
+        if (!["/login", "/signup"].includes(currentPath)) {
+          window.location.href = "/login";
+        }
       }
     }
 
