@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
 
+const URL = "https://devsphere-server-srn8.onrender.com";
+
 export const useUserStore = create(
   persist(
     (set, get) => ({
@@ -75,14 +77,11 @@ export const useUserStore = create(
 
         if (accessToken) {
           try {
-            const response = await axios.get(
-              "http://localhost:5000/api/auth/me",
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              }
-            );
+            const response = await axios.get(`${URL}/api/auth/me`, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            });
 
             if (response.status === 200) {
               set({
@@ -102,7 +101,7 @@ export const useUserStore = create(
         if (!sessionStorage.getItem("logging-out")) {
           try {
             const response = await axios.post(
-              "http://localhost:5000/api/auth/refresh",
+              `${URL}/api/auth/refresh`,
               {},
               {
                 withCredentials: true,

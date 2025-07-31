@@ -4,10 +4,10 @@ import { Link } from "react-router-dom";
 import { useUserStore } from "../stores/userStore";
 import { allPostsStore } from "../stores/postsStore";
 
+const URL = "https://devsphere-server-srn8.onrender.com";
+
 const getOwnerInfo = async (owner_id) => {
-  const response = await axios.get(
-    `http://localhost:5000/api/users/${owner_id}`
-  );
+  const response = await axios.get(`${URL}/api/users/${owner_id}`);
   return response.data;
 };
 
@@ -57,15 +57,12 @@ function Post({ post }) {
     }
 
     try {
-      const response = await axios.patch(
-        `http://localhost:5000/api/posts/${post_id}`,
-        {
-          title: editData.title,
-          content: editData.content,
-          collab: editData.collab,
-          owner_id: currentUser.user_id,
-        }
-      );
+      const response = await axios.patch(`${URL}/api/posts/${post_id}`, {
+        title: editData.title,
+        content: editData.content,
+        collab: editData.collab,
+        owner_id: currentUser.user_id,
+      });
 
       if (response.status === 200) {
         updatePost(response.data);
@@ -84,9 +81,7 @@ function Post({ post }) {
 
     setIsDeleting(true);
     try {
-      const response = await axios.delete(
-        `http://localhost:5000/api/posts/${post_id}`
-      );
+      const response = await axios.delete(`${URL}/api/posts/${post_id}`);
 
       if (response.status === 200) {
         deletePost(post_id);

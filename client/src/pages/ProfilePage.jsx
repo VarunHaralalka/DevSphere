@@ -4,6 +4,8 @@ import { useUserStore } from "../stores/userStore";
 import axios from "axios";
 import ProfileCard from "../components/ProfileCard";
 
+const URL = "https://devsphere-server-srn8.onrender.com";
+
 function ProfilePage() {
   const { id } = useParams();
   const { user: loggedInUser } = useUserStore();
@@ -25,12 +27,10 @@ function ProfilePage() {
     setError(null);
 
     try {
-      const userResponse = await axios.get(
-        `http://localhost:5000/api/users/${userIdToFetch}`
-      );
+      const userResponse = await axios.get(`${URL}/api/users/${userIdToFetch}`);
 
       const userInfoResponse = await axios.get(
-        `http://localhost:5000/api/user-info/${userIdToFetch}`
+        `${URL}/api/user-info/${userIdToFetch}`
       );
 
       const mergedUser = {

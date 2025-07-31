@@ -3,6 +3,8 @@ import axios from "axios";
 import { useUserStore } from "../stores/userStore";
 import { allPostsStore } from "../stores/postsStore";
 
+const URL = "https://devsphere-server-srn8.onrender.com";
+
 const PostModal = ({ open, setModalOpen }) => {
   const {
     register,
@@ -20,7 +22,7 @@ const PostModal = ({ open, setModalOpen }) => {
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/posts", {
+      const response = await axios.post(`${URL}/api/posts`, {
         ...data,
         owner_id: user.user_id,
       });

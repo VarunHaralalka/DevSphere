@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useUserStore } from "../stores/userStore";
 
+const URL = "https://devsphere-server-srn8.onrender.com";
+
 function ProfileCard({ user, editable = false, onProfileUpdate }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", msg: "" });
@@ -76,10 +78,7 @@ function ProfileCard({ user, editable = false, onProfileUpdate }) {
     };
 
     try {
-      const res = await axios.put(
-        `http://localhost:5000/api/user-info/${user_id}`,
-        payload
-      );
+      const res = await axios.put(`${URL}/api/user-info/${user_id}`, payload);
 
       if (currentUser?.user_id === user_id) {
         setUser({ ...currentUser, ...payload, techstack: payload.tech_stack });
@@ -99,7 +98,7 @@ function ProfileCard({ user, editable = false, onProfileUpdate }) {
   const handleLogout = async () => {
     try {
       sessionStorage.setItem("logging-out", "true");
-      await axios.post("http://localhost:5000/api/auth/logout");
+      await axios.post(`${URL}/api/auth/logout`);
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -123,9 +122,7 @@ Type "DELETE" to confirm:`;
 
     setIsDeleting(true);
     try {
-      const response = await axios.delete(
-        `http://localhost:5000/api/users/${user_id}`
-      );
+      const response = await axios.delete(`${URL}/api/users/${user_id}`);
 
       if (response.status === 200) {
         hardReset();
