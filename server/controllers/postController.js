@@ -17,8 +17,7 @@ export const getAllPosts = async (req, res) => {
 };
 
 export const createPost = async (req, res) => {
-  const { title, content, collab } = req.body;
-  const owner_id = req.user.user_id;
+  const { title, content, collab, owner_id } = req.body;
   try {
     const response = await pool.query(
       "INSERT INTO posts (title, content, owner_id, collab) VALUES ($1, $2, $3, $4) RETURNING *",
