@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import HomePage from "./pages/HomePage";
 import Navbar from "./components/Navbar";
@@ -73,7 +73,24 @@ function App() {
                 !isAuthenticated ? <SignUpPage /> : <Navigate to="/" replace />
               }
             />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route
+              path="*"
+              element={
+                <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <h1 className="text-4xl font-bold mb-4">
+                      404 - Page Not Found
+                    </h1>
+                    <p className="text-gray-400 mb-6">
+                      The page you're looking for doesn't exist.
+                    </p>
+                    <Link to="/" className="btn-primary">
+                      Go Home
+                    </Link>
+                  </div>
+                </div>
+              }
+            />
           </Routes>
         </main>
         <Footer />

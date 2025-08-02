@@ -4,7 +4,7 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(10) UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
 );
 
 -- Posts table
@@ -45,5 +45,7 @@ CREATE TABLE refresh_tokens (
 
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
+CREATE INDEX idx_posts_owner_id ON posts(owner_id);
+CREATE INDEX idx_posts_created_at ON posts(created_at);
 
 

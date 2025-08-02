@@ -103,9 +103,7 @@ function ProfileCard({ user, editable = false, onProfileUpdate }) {
       console.error("Logout error:", error);
     } finally {
       hardReset();
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 500);
+      navigate("/login", { replace: true });
     }
   };
 
